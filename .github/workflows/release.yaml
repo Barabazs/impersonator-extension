@@ -1,11 +1,10 @@
 name: Release
 
 on:
+  workflow_dispatch
   # release:
   #   types: [published]
-  workflow_dispatch: # TEMP
-    inputs:
-      foo: bar
+
 jobs:
   firefox:
     name: Submit (Firefox)
