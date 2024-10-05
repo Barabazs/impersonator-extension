@@ -1,12 +1,13 @@
 name: Release
 
 on:
-  release:
-    types: [published]
+  push:
+    branches: "**"
+  # release:
+  #   types: [published]
 
 jobs:
-  firefox:
-    name: Submit (Firefox)
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,17 +16,33 @@ jobs:
           node-version-file: .node-version
           cache: yarn
       - run: yarn install
-      - run: echo "INLINE_RUNTIME_CHUNK=false" > .env
+      - run: echo "VITE_INLINE_RUNTIME_CHUNK=false" > .env
       - run: yarn build
+      - uses: actions/upload-artifact@v4
+        with:
+          path:
+            - build
+  # firefox:
+  #   name: Submit (Firefox)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version-file: .node-version
+  #         cache: yarn
+  #     - run: yarn install
+  #     - run: echo "VITE_INLINE_RUNTIME_CHUNK=false" > .env
+  #     - run: yarn build
 
-      - name: archive source code
-        run: |
-          git archive --output source.zip HEAD -- ":!.github"
-          unzip -l source.zip
+  #     - name: archive source code
+  #       run: |
+  #         git archive --output source.zip HEAD -- ":!.github"
+  #         unzip -l source.zip
 
-      - name: sign and submit extension
-        run: web-ext sign --channel listed --upload-source-code ../source.zip
-        working-directory: build
-        env:
-          WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
-          WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
+  #     - name: sign and submit extension
+  #       run: web-ext sign --channel listed --upload-source-code ../source.zip
+  #       working-directory: build
+  #       env:
+  #         WEB_EXT_API_KEY: ${{ secrets.WEB_EXT_API_KEY }}
+  #         WEB_EXT_API_SECRET: ${{ secrets.WEB_EXT_API_SECRET }}
