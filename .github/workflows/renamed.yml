@@ -25,8 +25,8 @@ jobs:
           path: build
       - uses: actions/upload-artifact@v4
         with:
-          name: source.zip
-          path: source
+          name: source
+          path: source.zip
   firefox:
     name: Submit (Firefox)
     needs: build
