@@ -1,0 +1,11 @@
+# Submodule (not our code)
+impersonator/
+
+# Build output
+build/
+
+# Dependencies
+node_modules/
+
+# Test coverage
+coverage/

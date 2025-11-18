@@ -113,9 +113,17 @@ The extension has a **three-layer architecture** to work around browser security
 **Purpose:** Manages blockchain network configurations across the extension
 
 **Features:**
+- **Pre-configured Default Networks:** 25 popular EVM chains included out-of-the-box
+- **Enable/Disable Networks:** Toggle networks on/off without deleting them
+- **Automatic Migration:** Seamlessly merges defaults with existing custom networks
 - Persists to `chrome.storage.sync` for cross-device sync
 - Provides `useNetworks()` hook for consumption
 - Tracks `reloadRequired` state when networks change
+
+**New Context Methods:**
+- `toggleNetworkEnabled(networkName)` - Enable/disable a network
+- `resetToDefaults()` - Remove all custom networks and reset to defaults
+- `getEnabledNetworks()` - Get only networks that are enabled
 
 **Storage Schema:**
 ```typescript
@@ -123,9 +131,20 @@ networksInfo: {
   [chainName: string]: {
     chainId: number;
     rpcUrl: string;
+    isDefault?: boolean;     // Whether this is a pre-configured network
+    isEnabled?: boolean;     // Whether the network is enabled (default: true)
+    symbol?: string;         // Network symbol (e.g., "ETH", "MATIC")
+    blockExplorer?: string;  // Block explorer URL
   }
 }
 ```
+
+**Default Networks (src/data/defaultNetworks.ts):**
+- **Layer 1 (3):** Ethereum Mainnet, BSC, Avalanche
+- **Layer 2 (8):** Polygon, Arbitrum, Optimism, Base, zkSync Era, Linea, Scroll, Mantle
+- **Sidechains (9):** Gnosis, Fantom, Celo, Moonbeam, Aurora, Cronos, Evmos, Kava, Metis
+- **Testnets (5):** Sepolia, Polygon Mumbai, BSC Testnet, Arbitrum Sepolia, Optimism Sepolia
+- All defaults use verified public RPC endpoints (primarily Ankr)
 
 #### 4. **Tab-Scoped State Management**
 **Unique Feature:** Each browser tab can have independent address/chain configuration
@@ -152,11 +171,13 @@ impersonator-extension/
 │   ├── components/                   # React UI components
 │   │   └── Settings/
 │   │       ├── index.tsx             # Settings page wrapper
-│   │       ├── Chains.tsx            # Network list UI
+│   │       ├── Chains.tsx            # Network list UI (with toggle/search)
 │   │       ├── AddChain.tsx          # Add network form
 │   │       └── EditChain.tsx         # Edit/delete network form
 │   ├── contexts/
 │   │   └── NetworksContext.tsx       # Global network state management
+│   ├── data/                         # Static data and configurations
+│   │   └── defaultNetworks.ts        # Pre-configured network list (25 chains)
 │   ├── App.tsx                       # Main popup UI
 │   ├── index.tsx                     # React entry point
 │   ├── index.css                     # Global styles
@@ -328,11 +349,13 @@ From `.eslintrc.cjs`:
 |-----------|---------|----------------------|
 | `src/chrome/inject.ts` | Content script that bridges popup ↔ injected script | Message relay via `chrome.runtime.onMessage` and `window.postMessage` |
 | `src/chrome/impersonator.ts` | Custom EIP-1193 provider implementation | `ImpersonatorProvider` class, `request()`, `send()`, `setAddress()`, `setChainId()` |
-| `src/App.tsx` | Main popup UI | Address input, network selector, enable toggle, settings navigation |
-| `src/contexts/NetworksContext.tsx` | Global network state management | `NetworksContext`, `useNetworks()` hook, `networksInfo` persistence |
-| `src/components/Settings/Chains.tsx` | Network list UI | Displays all saved networks, navigation to add/edit |
-| `src/components/Settings/AddChain.tsx` | Add network form | Auto-fetches chainId from RPC URL, saves to context |
-| `src/components/Settings/EditChain.tsx` | Edit/delete network form | Modify existing network, delete network |
+| `src/App.tsx` | Main popup UI | Address input, network selector (enabled networks only), enable toggle, settings navigation |
+| `src/contexts/NetworksContext.tsx` | Global network state management | `NetworksContext`, `useNetworks()` hook, `networksInfo` persistence, `toggleNetworkEnabled()`, `resetToDefaults()`, `getEnabledNetworks()` |
+| `src/data/defaultNetworks.ts` | **NEW** Pre-configured network definitions | `DEFAULT_NETWORKS` (25 chains), `getNetworksByCategory()`, `getNetworkByChainId()` |
+| `src/components/Settings/Chains.tsx` | Network management UI | **ENHANCED** Displays default/custom networks separately, toggle switches, search/filter, reset button |
+| `src/components/Settings/AddChain.tsx` | Add custom network form | Auto-fetches chainId from RPC URL, saves to context |
+| `src/components/Settings/EditChain.tsx` | Edit/delete network form | Modify existing network, delete custom networks |
+| `src/types.ts` | TypeScript type definitions | `NetworkInfo` interface (extended with `isDefault`, `isEnabled`, `symbol`, `blockExplorer`), `NetworksInfo` type |
 | `public/manifest.json` | Extension manifest | Permissions, content scripts, web-accessible resources |
 
 ### Configuration Files
@@ -420,14 +443,60 @@ The project has **three separate Vite configs** to handle different bundle requi
 
 ## Testing & Quality
 
-### Current State
+### Automated Testing
 
-**No automated tests** are currently implemented in this project.
+**Test Framework:** Vitest + React Testing Library
 
-**Quality Assurance:**
+**Test Scripts:**
+```bash
+# Run tests in watch mode
+yarn test
+
+# Run tests once (CI mode)
+yarn test:run
+
+# Generate coverage report
+yarn test:coverage
+
+# Open test UI in browser
+yarn test:ui
+```
+
+**Test Coverage:**
+- **Unit Tests:** NetworksContext logic, defaultNetworks utilities
+- **Component Tests:** Chains UI, network filtering, toggle switches
+- **Mocked APIs:** chrome.storage, chrome.tabs, chrome.runtime
+
+**Test Files:**
+```
+src/
+├── test/
+│   ├── setup.ts                     # Global test configuration
+│   └── README.md                    # Testing guide
+├── contexts/__tests__/
+│   └── NetworksContext.test.tsx     # Context logic tests
+├── components/Settings/__tests__/
+│   └── Chains.test.tsx              # UI component tests
+└── data/__tests__/
+    └── defaultNetworks.test.ts      # Network data tests
+```
+
+**Key Test Scenarios:**
+- ✅ Fresh install initializes with 25 default networks
+- ✅ Migration from old format preserves user data
+- ✅ Custom networks merge correctly with defaults
+- ✅ Enable/disable toggle updates state
+- ✅ getEnabledNetworks() filters correctly
+- ✅ resetToDefaults() removes custom networks
+- ✅ Search/filter UI works as expected
+- ✅ Network symbols and metadata display correctly
+
+### Quality Assurance
+
+**Static Analysis:**
 - **ESLint:** Code linting (run via `yarn lint`)
 - **TypeScript:** Compile-time type checking
-- **Manual Testing:** Via `yarn chrome:run` and `yarn firefox:run`
+- **Vitest:** Automated unit and component tests
 
 ### Manual Testing Workflow
 
@@ -454,6 +523,9 @@ The project has **three separate Vite configs** to handle different bundle requi
    - Verify enable/disable toggle works
    - Add custom network, verify persistence
    - Edit/delete network, verify changes persist
+   - Toggle default networks on/off
+   - Search for networks by name or chain ID
+   - Reset to defaults and verify behavior
 
 ### Browser Compatibility
 
@@ -658,6 +730,45 @@ When making significant changes, update:
 - [ ] Message type documentation (if new messages added)
 - [ ] Type definitions in `src/types.ts`
 
+### CI/CD Pipeline
+
+**Continuous Integration** runs automatically on every push and pull request.
+
+**GitHub Actions Workflows:**
+
+**1. CI Workflow** (`.github/workflows/ci.yaml`)
+- **Triggers:** Push to main/master/develop, pull requests
+- **Jobs:**
+  - **Test & Lint:**
+    - Install dependencies
+    - Run ESLint
+    - Run Vitest tests
+    - Generate coverage report
+    - Upload coverage to Codecov (optional)
+  - **Build:**
+    - Build extension with Vite
+    - Verify build outputs
+    - Upload build artifacts (7-day retention)
+
+**2. Release Workflow** (`.github/workflows/release.yaml`)
+- **Triggers:** GitHub release published
+- **Jobs:**
+  - **Firefox Submission:**
+    - Build production version
+    - Archive source code
+    - Sign and submit to Firefox Add-ons automatically
+
+**Status Checks:**
+All pull requests must pass:
+- ✅ Linting (ESLint)
+- ✅ Tests (Vitest)
+- ✅ Build verification
+
+**Viewing Results:**
+- Check the "Actions" tab in GitHub repository
+- View coverage reports in PR comments (if Codecov configured)
+- Download build artifacts from workflow runs
+
 ### Deployment Workflow
 
 **Chrome Web Store:**
@@ -669,7 +780,7 @@ When making significant changes, update:
 **Firefox Add-ons:**
 1. Build production version: `yarn build`
 2. GitHub Actions automatically builds and signs on release
-3. See `.github/.workflow/release.yaml` for CI/CD details
+3. See `.github/workflows/release.yaml` for CI/CD details
 
 **Important:** Always test production builds locally before publishing:
 ```bash
