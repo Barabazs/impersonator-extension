@@ -68,7 +68,7 @@ const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksIn
         merged[name] = {
           ...networkInfo,
           isDefault: true,
-          isEnabled: true,
+          isEnabled: networkInfo.isEnabled !== undefined ? networkInfo.isEnabled : true,
           symbol: matchingDefault[1].symbol,
           blockExplorer: matchingDefault[1].blockExplorer,
         };
@@ -77,7 +77,7 @@ const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksIn
         merged[name] = {
           ...networkInfo,
           isDefault: false,
-          isEnabled: true,
+          isEnabled: networkInfo.isEnabled !== undefined ? networkInfo.isEnabled : true,
         };
       }
     } else {

@@ -164,7 +164,8 @@ describe('Chains Component', () => {
 
     await waitFor(() => {
       expect(screen.getAllByText('ETH').length).toBeGreaterThan(0);
-      expect(screen.getByText('MATIC')).toBeInTheDocument();
+      // Multiple networks can have the same symbol (e.g., Polygon and Polygon Mumbai both have MATIC)
+      expect(screen.getAllByText('MATIC').length).toBeGreaterThan(0);
     });
   });
 
