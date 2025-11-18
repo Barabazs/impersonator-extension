@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { useUpdateEffect } from "@chakra-ui/react";
 import { NetworksInfo } from "@/types";
-import { DEFAULT_NETWORKS } from "@/data/defaultNetworks";
+import { getDefaultNetworksAsNetworksInfo } from "@/data/defaultNetworks";
 
 type NetworkContextType = {
   networksInfo: NetworksInfo | undefined;
@@ -29,19 +29,7 @@ export const NetworksContext = createContext<NetworkContextType>({
  * Pre-computed default networks in NetworkInfo format
  * Computed once at module load for performance
  */
-const defaultsAsNetworkInfo: NetworksInfo = Object.fromEntries(
-  Object.entries(DEFAULT_NETWORKS).map(([name, info]) => [
-    name,
-    {
-      chainId: info.chainId,
-      rpcUrl: info.rpcUrl,
-      symbol: info.symbol,
-      blockExplorer: info.blockExplorer,
-      isDefault: true,
-      isEnabled: true,
-    },
-  ])
-);
+const defaultsAsNetworkInfo: NetworksInfo = getDefaultNetworksAsNetworksInfo();
 
 /**
  * Merge default networks with user-saved networks
@@ -170,19 +158,7 @@ export const NetworksProvider: React.FunctionComponent<{
    * Reset all networks to defaults (removes custom networks and resets RPC URLs)
    */
   const resetToDefaults = () => {
-    const defaultsAsNetworkInfo: NetworksInfo = {};
-    Object.entries(DEFAULT_NETWORKS).forEach(([name, info]) => {
-      defaultsAsNetworkInfo[name] = {
-        chainId: info.chainId,
-        rpcUrl: info.rpcUrl,
-        symbol: info.symbol,
-        blockExplorer: info.blockExplorer,
-        isDefault: true,
-        isEnabled: true,
-      };
-    });
-
-    setNetworksInfo(defaultsAsNetworkInfo);
+    setNetworksInfo(getDefaultNetworksAsNetworksInfo());
   };
 
   /**
