@@ -158,7 +158,7 @@ export const NetworksProvider: React.FunctionComponent<{
    * Reset all networks to defaults (removes custom networks and resets RPC URLs)
    */
   const resetToDefaults = () => {
-    setNetworksInfo(getDefaultNetworksAsNetworksInfo());
+    setNetworksInfo({ ...defaultsAsNetworkInfo });
   };
 
   /**
