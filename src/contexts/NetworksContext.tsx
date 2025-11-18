@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { useUpdateEffect } from "@chakra-ui/react";
-import { NetworksInfo, NetworkInfo } from "@/types";
+import { NetworksInfo } from "@/types";
 import { DEFAULT_NETWORKS } from "@/data/defaultNetworks";
 
 type NetworkContextType = {
@@ -59,7 +59,7 @@ const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksIn
       // Old format: { chainId, rpcUrl }
       // Check if chainId matches any default network
       const matchingDefault = Object.entries(defaultsAsNetworkInfo).find(
-        ([_, defaultInfo]) => defaultInfo.chainId === networkInfo.chainId
+        ([, defaultInfo]) => defaultInfo.chainId === networkInfo.chainId
       );
 
       if (matchingDefault) {
@@ -213,4 +213,5 @@ export const NetworksProvider: React.FunctionComponent<{
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useNetworks = () => useContext(NetworksContext);

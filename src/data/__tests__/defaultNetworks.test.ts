@@ -13,7 +13,7 @@ describe('defaultNetworks', () => {
     });
 
     it('should have all required fields for each network', () => {
-      Object.entries(DEFAULT_NETWORKS).forEach(([name, network]) => {
+      Object.entries(DEFAULT_NETWORKS).forEach(([, network]) => {
         expect(network.chainId).toBeDefined();
         expect(typeof network.chainId).toBe('number');
         expect(network.rpcUrl).toBeDefined();
@@ -122,7 +122,7 @@ describe('defaultNetworks', () => {
       expect(Object.keys(networksInfo).length).toBe(25);
 
       // Check that format is correct
-      Object.entries(networksInfo).forEach(([name, info]) => {
+      Object.entries(networksInfo).forEach(([, info]) => {
         expect(info.chainId).toBeDefined();
         expect(typeof info.chainId).toBe('number');
         expect(info.rpcUrl).toBeDefined();

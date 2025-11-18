@@ -266,7 +266,7 @@ export const getNetworksByCategory = () => {
  * Get network by chain ID
  */
 export const getNetworkByChainId = (chainId: number): { name: string; info: DefaultNetworkInfo } | undefined => {
-  const entry = Object.entries(DEFAULT_NETWORKS).find(([_, info]) => info.chainId === chainId);
+  const entry = Object.entries(DEFAULT_NETWORKS).find(([, info]) => info.chainId === chainId);
   return entry ? { name: entry[0], info: entry[1] } : undefined;
 };
 

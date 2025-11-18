@@ -108,7 +108,9 @@ function AddChain({ back }: { back: () => void }) {
                     setChainId(_chainId.toString());
                   }
                 }
-              } catch (e) {}
+              } catch (e) {
+                // Ignore errors from invalid RPC URLs
+              }
               setIsBtnLoading(false);
             }}
           />
