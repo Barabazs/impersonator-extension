@@ -26,23 +26,28 @@ export const NetworksContext = createContext<NetworkContextType>({
 });
 
 /**
- * Merge default networks with user-saved networks
- * User networks take precedence over defaults
+ * Pre-computed default networks in NetworkInfo format
+ * Computed once at module load for performance
  */
-const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksInfo => {
-  // Convert DEFAULT_NETWORKS to NetworkInfo format
-  const defaultsAsNetworkInfo: NetworksInfo = {};
-  Object.entries(DEFAULT_NETWORKS).forEach(([name, info]) => {
-    defaultsAsNetworkInfo[name] = {
+const defaultsAsNetworkInfo: NetworksInfo = Object.fromEntries(
+  Object.entries(DEFAULT_NETWORKS).map(([name, info]) => [
+    name,
+    {
       chainId: info.chainId,
       rpcUrl: info.rpcUrl,
       symbol: info.symbol,
       blockExplorer: info.blockExplorer,
       isDefault: true,
-      isEnabled: true, // Enable all defaults by default
-    };
-  });
+      isEnabled: true,
+    },
+  ])
+);
 
+/**
+ * Merge default networks with user-saved networks
+ * User networks take precedence over defaults
+ */
+const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksInfo => {
   // If no stored networks, return all defaults
   if (!storedNetworks || Object.keys(storedNetworks).length === 0) {
     return defaultsAsNetworkInfo;
@@ -57,9 +62,10 @@ const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksIn
 
     if (needsMigration) {
       // Old format: { chainId, rpcUrl }
-      // Check if chainId matches any default network
+      // Check if BOTH name AND chainId match a default network to avoid misclassification
       const matchingDefault = Object.entries(defaultsAsNetworkInfo).find(
-        ([, defaultInfo]) => defaultInfo.chainId === networkInfo.chainId
+        ([defaultName, defaultInfo]) =>
+          defaultName === name && defaultInfo.chainId === networkInfo.chainId
       );
 
       if (matchingDefault) {
@@ -73,7 +79,7 @@ const mergeWithDefaults = (storedNetworks: NetworksInfo | undefined): NetworksIn
           blockExplorer: matchingDefault[1].blockExplorer,
         };
       } else {
-        // Truly custom network
+        // Truly custom network (different name or chainId from defaults)
         merged[name] = {
           ...networkInfo,
           isDefault: false,
@@ -113,7 +119,7 @@ export const NetworksProvider: React.FunctionComponent<{
         await chrome.storage.sync.set({
           networksInfo: mergedNetworks,
         });
-      } else if (storedNetworksInfo) {
+      } else {
         // Check if any stored network needs migration (has old format)
         const needsMigration = Object.values(storedNetworksInfo).some(
           (net) => net.isDefault === undefined

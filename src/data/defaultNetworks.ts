@@ -271,15 +271,20 @@ export const getNetworkByChainId = (chainId: number): { name: string; info: Defa
 };
 
 /**
- * Convert DEFAULT_NETWORKS format to NetworksInfo format (for backward compatibility)
+ * Convert DEFAULT_NETWORKS format to NetworksInfo format
+ * Includes all fields for data consistency
  */
-export const getDefaultNetworksAsNetworksInfo = () => {
-  const networksInfo: { [name: string]: { chainId: number; rpcUrl: string } } = {};
+export const getDefaultNetworksAsNetworksInfo = (): NetworksInfo => {
+  const networksInfo: NetworksInfo = {};
 
   Object.entries(DEFAULT_NETWORKS).forEach(([name, info]) => {
     networksInfo[name] = {
       chainId: info.chainId,
       rpcUrl: info.rpcUrl,
+      symbol: info.symbol,
+      blockExplorer: info.blockExplorer,
+      isDefault: true,
+      isEnabled: true,
     };
   });
 
