@@ -730,6 +730,45 @@ When making significant changes, update:
 - [ ] Message type documentation (if new messages added)
 - [ ] Type definitions in `src/types.ts`
 
+### CI/CD Pipeline
+
+**Continuous Integration** runs automatically on every push and pull request.
+
+**GitHub Actions Workflows:**
+
+**1. CI Workflow** (`.github/workflows/ci.yaml`)
+- **Triggers:** Push to main/master/develop, pull requests
+- **Jobs:**
+  - **Test & Lint:**
+    - Install dependencies
+    - Run ESLint
+    - Run Vitest tests
+    - Generate coverage report
+    - Upload coverage to Codecov (optional)
+  - **Build:**
+    - Build extension with Vite
+    - Verify build outputs
+    - Upload build artifacts (7-day retention)
+
+**2. Release Workflow** (`.github/workflows/release.yaml`)
+- **Triggers:** GitHub release published
+- **Jobs:**
+  - **Firefox Submission:**
+    - Build production version
+    - Archive source code
+    - Sign and submit to Firefox Add-ons automatically
+
+**Status Checks:**
+All pull requests must pass:
+- ✅ Linting (ESLint)
+- ✅ Tests (Vitest)
+- ✅ Build verification
+
+**Viewing Results:**
+- Check the "Actions" tab in GitHub repository
+- View coverage reports in PR comments (if Codecov configured)
+- Download build artifacts from workflow runs
+
 ### Deployment Workflow
 
 **Chrome Web Store:**
@@ -741,7 +780,7 @@ When making significant changes, update:
 **Firefox Add-ons:**
 1. Build production version: `yarn build`
 2. GitHub Actions automatically builds and signs on release
-3. See `.github/.workflow/release.yaml` for CI/CD details
+3. See `.github/workflows/release.yaml` for CI/CD details
 
 **Important:** Always test production builds locally before publishing:
 ```bash
