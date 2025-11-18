@@ -28,7 +28,7 @@ import Settings from "@/components/Settings";
 import { useNetworks } from "@/contexts/NetworksContext";
 
 function App() {
-  const { networksInfo, reloadRequired, setReloadRequired } = useNetworks();
+  const { networksInfo, reloadRequired, setReloadRequired, getEnabledNetworks } = useNetworks();
 
   const [isEnabled, setIsEnabled] = useState(true);
   const [isInjected, setIsInjected] = useState(false); // isEnabled can change by toggle, but this tells if actually injected
@@ -214,8 +214,12 @@ function App() {
 
   useUpdateEffect(() => {
     if (reloadRequired && networksInfo) {
-      // first chain is added, so set that as the selected network
-      setChainName(Object.keys(networksInfo)[0]);
+      // first enabled chain is added, so set that as the selected network
+      const enabledNetworks = getEnabledNetworks();
+      const firstEnabledNetwork = Object.keys(enabledNetworks)[0];
+      if (firstEnabledNetwork) {
+        setChainName(firstEnabledNetwork);
+      }
     }
   }, [reloadRequired, networksInfo]);
 
@@ -304,9 +308,9 @@ function App() {
                 rounded="lg"
                 _hover={{ cursor: "pointer" }}
                 placeholder={
-                  networksInfo && Object.keys(networksInfo).length > 0
-                    ? undefined
-                    : "Select Network"
+                  networksInfo && Object.keys(getEnabledNetworks()).length > 0
+                    ? "Select Network"
+                    : "No networks enabled"
                 }
                 value={chainName}
                 onChange={(e) => {
@@ -315,14 +319,20 @@ function App() {
                   }
                   setChainName(e.target.value);
                 }}
+                isDisabled={!networksInfo || Object.keys(getEnabledNetworks()).length === 0}
               >
                 {networksInfo &&
-                  Object.keys(networksInfo).map((chainName, i) => (
-                    <option value={chainName} key={i}>
-                      {chainName}
+                  Object.entries(getEnabledNetworks()).map(([networkName, networkInfo], i) => (
+                    <option value={networkName} key={i}>
+                      {networkName} (Chain ID: {networkInfo.chainId})
                     </option>
                   ))}
               </Select>
+              {networksInfo && Object.keys(getEnabledNetworks()).length === 0 && (
+                <Text mt="0.5rem" fontSize="xs" color="orange.300" textAlign="center">
+                  No networks enabled. Go to Settings to enable networks.
+                </Text>
+              )}
             </Center>
             {reloadRequired && (
               <Alert mt="1.5rem" status="warning" rounded="lg">
