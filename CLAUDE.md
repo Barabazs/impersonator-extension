@@ -443,14 +443,60 @@ The project has **three separate Vite configs** to handle different bundle requi
 
 ## Testing & Quality
 
-### Current State
+### Automated Testing
 
-**No automated tests** are currently implemented in this project.
+**Test Framework:** Vitest + React Testing Library
 
-**Quality Assurance:**
+**Test Scripts:**
+```bash
+# Run tests in watch mode
+yarn test
+
+# Run tests once (CI mode)
+yarn test:run
+
+# Generate coverage report
+yarn test:coverage
+
+# Open test UI in browser
+yarn test:ui
+```
+
+**Test Coverage:**
+- **Unit Tests:** NetworksContext logic, defaultNetworks utilities
+- **Component Tests:** Chains UI, network filtering, toggle switches
+- **Mocked APIs:** chrome.storage, chrome.tabs, chrome.runtime
+
+**Test Files:**
+```
+src/
+├── test/
+│   ├── setup.ts                     # Global test configuration
+│   └── README.md                    # Testing guide
+├── contexts/__tests__/
+│   └── NetworksContext.test.tsx     # Context logic tests
+├── components/Settings/__tests__/
+│   └── Chains.test.tsx              # UI component tests
+└── data/__tests__/
+    └── defaultNetworks.test.ts      # Network data tests
+```
+
+**Key Test Scenarios:**
+- ✅ Fresh install initializes with 25 default networks
+- ✅ Migration from old format preserves user data
+- ✅ Custom networks merge correctly with defaults
+- ✅ Enable/disable toggle updates state
+- ✅ getEnabledNetworks() filters correctly
+- ✅ resetToDefaults() removes custom networks
+- ✅ Search/filter UI works as expected
+- ✅ Network symbols and metadata display correctly
+
+### Quality Assurance
+
+**Static Analysis:**
 - **ESLint:** Code linting (run via `yarn lint`)
 - **TypeScript:** Compile-time type checking
-- **Manual Testing:** Via `yarn chrome:run` and `yarn firefox:run`
+- **Vitest:** Automated unit and component tests
 
 ### Manual Testing Workflow
 
@@ -477,6 +523,9 @@ The project has **three separate Vite configs** to handle different bundle requi
    - Verify enable/disable toggle works
    - Add custom network, verify persistence
    - Edit/delete network, verify changes persist
+   - Toggle default networks on/off
+   - Search for networks by name or chain ID
+   - Reset to defaults and verify behavior
 
 ### Browser Compatibility
 
