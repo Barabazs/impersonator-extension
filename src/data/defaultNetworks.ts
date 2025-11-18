@@ -18,6 +18,8 @@
  * Last Updated: 2025-11-18
  */
 
+import type { NetworksInfo } from '@/types';
+
 export interface DefaultNetworkInfo {
   chainId: number;
   rpcUrl: string;
