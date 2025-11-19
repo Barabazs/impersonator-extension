@@ -18,7 +18,12 @@ class ImpersonatorProvider extends EventEmitter {
   constructor(chainId: number, rpcUrl: string, address: string) {
     super();
 
-    this.provider = new StaticJsonRpcProvider(rpcUrl);
+    // Provide network config to prevent automatic network detection
+    // which can be blocked by website's Content Security Policy
+    this.provider = new StaticJsonRpcProvider(rpcUrl, {
+      chainId: chainId,
+      name: 'unknown'
+    });
     this.chainId = chainId;
     this.address = address;
   }
@@ -29,7 +34,12 @@ class ImpersonatorProvider extends EventEmitter {
   };
 
   setChainId = (chainId: number, rpcUrl: string) => {
-    this.provider = new StaticJsonRpcProvider(rpcUrl);
+    // Provide network config to prevent automatic network detection
+    // which can be blocked by website's Content Security Policy
+    this.provider = new StaticJsonRpcProvider(rpcUrl, {
+      chainId: chainId,
+      name: 'unknown'
+    });
 
     if (this.chainId !== chainId) {
       this.chainId = chainId;
