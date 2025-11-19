@@ -256,16 +256,23 @@ window.addEventListener("message", (e: any) => {
     }
     case "setAddress": {
       const address = e.data.msg.address as string;
-      ((window as Window).ethereum as ImpersonatorProvider).setAddress(address);
+      const ethereum = (window as Window).ethereum;
+
+      // Only call setAddress if the provider is initialized
+      if (ethereum && ethereum.isImpersonator) {
+        (ethereum as ImpersonatorProvider).setAddress(address);
+      }
       break;
     }
     case "setChainId": {
       const chainId = e.data.msg.chainId as number;
       const rpcUrl = e.data.msg.rpcUrl as string;
-      ((window as Window).ethereum as ImpersonatorProvider).setChainId(
-        chainId,
-        rpcUrl
-      );
+      const ethereum = (window as Window).ethereum;
+
+      // Only call setChainId if the provider is initialized
+      if (ethereum && ethereum.isImpersonator) {
+        (ethereum as ImpersonatorProvider).setChainId(chainId, rpcUrl);
+      }
       break;
     }
   }
