@@ -15,14 +15,14 @@ class ImpersonatorProvider extends EventEmitter {
   private provider: StaticJsonRpcProvider;
   private chainId: number;
 
-  constructor(chainId: number, rpcUrl: string, address: string) {
+  constructor(chainId: number, rpcUrl: string, address: string, networkName?: string) {
     super();
 
     // Provide network config to prevent automatic network detection
     // which can be blocked by website's Content Security Policy
     this.provider = new StaticJsonRpcProvider(rpcUrl, {
       chainId: chainId,
-      name: 'unknown'
+      name: networkName || 'unknown'
     });
     this.chainId = chainId;
     this.address = address;
@@ -33,12 +33,12 @@ class ImpersonatorProvider extends EventEmitter {
     this.emit("accountsChanged", [address]);
   };
 
-  setChainId = (chainId: number, rpcUrl: string) => {
+  setChainId = (chainId: number, rpcUrl: string, networkName?: string) => {
     // Provide network config to prevent automatic network detection
     // which can be blocked by website's Content Security Policy
     this.provider = new StaticJsonRpcProvider(rpcUrl, {
       chainId: chainId,
-      name: 'unknown'
+      name: networkName || 'unknown'
     });
 
     if (this.chainId !== chainId) {
@@ -108,9 +108,10 @@ class ImpersonatorProvider extends EventEmitter {
                 case "switchEthereumChain": {
                   const chainId = e.data.msg.chainId as number;
                   const rpcUrl = e.data.msg.rpcUrl as string;
+                  const chainName = e.data.msg.chainName as string | undefined;
                   (
                     (window as Window).ethereum as ImpersonatorProvider
-                  ).setChainId(chainId, rpcUrl);
+                  ).setChainId(chainId, rpcUrl, chainName);
                   // remove this listener as we already have a listener for "message" and don't want duplicates
                   controller.abort();
 
@@ -250,11 +251,13 @@ window.addEventListener("message", (e: any) => {
       const address = e.data.msg.address as string;
       const chainId = e.data.msg.chainId as number;
       const rpcUrl = e.data.msg.rpcUrl as string;
+      const chainName = e.data.msg.chainName as string | undefined;
       try {
         const impersonatedProvider = new ImpersonatorProvider(
           chainId,
           rpcUrl,
-          address
+          address,
+          chainName
         );
 
         (window as Window).ethereum = impersonatedProvider;
@@ -277,11 +280,12 @@ window.addEventListener("message", (e: any) => {
     case "setChainId": {
       const chainId = e.data.msg.chainId as number;
       const rpcUrl = e.data.msg.rpcUrl as string;
+      const chainName = e.data.msg.chainName as string | undefined;
       const ethereum = (window as Window).ethereum;
 
       // Only call setChainId if the provider is initialized
       if (ethereum && ethereum.isImpersonator) {
-        (ethereum as ImpersonatorProvider).setChainId(chainId, rpcUrl);
+        (ethereum as ImpersonatorProvider).setChainId(chainId, rpcUrl, chainName);
       }
       break;
     }

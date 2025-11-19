@@ -57,6 +57,7 @@ const init = async () => {
               address,
               chainId: networksInfo[chainName].chainId,
               rpcUrl: networksInfo[chainName].rpcUrl,
+              chainName,
             },
           },
           "*"
@@ -144,6 +145,7 @@ window.addEventListener("message", async (e) => {
           msg: {
             chainId,
             rpcUrl,
+            chainName,
           },
         },
         "*"
